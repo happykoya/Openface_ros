@@ -1,24 +1,33 @@
-# OpenFace ROS package
+# Intel Realsense OpenFace for ROS 
 
-Repository that hosts software libraries and ROS packages for gaze and emotion detection, performed at the Human Interaction and Robotics Lab in University of Colorado at Boulder.
+![OS](https://img.shields.io/badge/OS-Ubuntu_18.04-orange.svg) ![ROS_2](https://img.shields.io/badge/ROS-Melodic-brightgreen.svg) ![OPENFACE](https://img.shields.io/badge/OpenFace-2.2-lightgrey.svg)
 
-![](images/result2.png)
 
-The software in this repo has been developed for, and tested on, a Sawyer Research Robot and Realsense---a widely used platform for research in HRC. Nonetheless, it is easy to customize to any robotic platform that shares similar hardware features.
+This repository contains a ROS wrapper for [OpenFace](https://github.com/TadasBaltrusaitis/OpenFace), which allows to extract the following information from an RGB-D Stream.
+- 2D/3D Facial Landmarks
+- Head Pose and Orientation 
+- 2D/3D Eye Landmarks
+- Gaze
+- Action Units
 
-## Installation
 
-Guide for installing, compiling and testing the openface_ros package in your ROS environment. This tutorial should be useful regardless of your skill level, from a first-time ROS user to an experienced engineer.
+
+The software expects [ HIRO-group  Lab's fork of OpenFace](https://github.com/HIRO-group/openface_ros), it is easy to customize to any  platform that shares similar hardware features.
+
 
 ### Prerequisites
 
 #### System Dependencies
 
 This repository needs `openface` and `realsense`. To install, compile and test openface package, please refer to the [installation tutorial](https://github.com/TadasBaltrusaitis/OpenFace/wiki) in openface github wiki page. Also, for realsense package, please refer to the [installation tutorial](https://github.com/IntelRealSense/realsense-ros) in realsense github page.
+#### Hardware
+   *  [Intel® RealSense™ Depth Camera D415](https://www.intelrealsense.com/depth-camera-d415/)
+#### Software   
+   * [Ubuntu 18.04.4 LTS (Bionic Beaver)](https://releases.ubuntu.com/18.04/)
 
 #### ROS Dependencies
 
-This repository supports `ROS kinetic`. [Here](https://hiro-group.ronc.one/ros_kinetic_installation.html)'s a recently guide on how to install ROS.
+This repository supports `ROS Melodic`. [Here](http://wiki.ros.org/melodic)'s a recently guide on how to install ROS.
 
 ##### Catkin Tools
 
@@ -28,43 +37,110 @@ We use the new Catkin Command Line Tools `catkin_tools`, a Python package that p
 sudo apt-get install python-catkin-tools
 ```
 
-### Execution on the robot
+
+## Installation
+
+Guide for installing, compiling and testing the openface_ros package in your ROS environment.
+
+
+```sh
+sudo apt-get -y update
+
+sudo apt-get -y install build-essential
+sudo apt-get -y install gcc-8 g++-8
+
+sudo apt-get -y install cmake
+
+sudo apt-get -y install zip
+sudo apt-get -y install libopenblas-dev liblapack-dev
+sudo apt-get -y install libgtk2.0-dev pkg-config libavcodec-dev libavformat-dev
+sudo apt-get -y install libtbb2 libjpeg-dev libpng-dev libtiff-dev libdc1394-22-dev
+
+
+#Downloading and Installing OpenCV...
+
+wget https://github.com/opencv/opencv/archive/4.1.0.zip
+unzip 4.1.0.zip
+cd opencv-4.1.0
+mkdir -p build
+
+cd bcmake -D CMAKE_BUILD_TYPE=RELEASE -D CMAKE_INSTALL_PREFIX=/usr/local -D WITH_TBB=ON -D WITH_CUDA=OFF -D BUILD_SHARED_LIBS=OFF ..
+make -j4
+sudo make install
+sudo ldconfig
+
+cd ../..
+rm 4.1.0.zip
+sudo rm -r opencv-4.1.0uild
+
+# dlib dependecy /  Installing dlib
+wget http://dlib.net/files/dlib-19.13.tar.bz2;
+tar xf dlib-19.13.tar.bz2;
+cd dlib-19.13;
+mkdir -p build;
+cd build;
+
+cmake ..;
+cmake --build . --config Release;
+sudo make install;
+sudo ldconfig;
+cd ../..;    
+rm -r dlib-19.13.tar.bz2 
+
+# OpenFace installation
+
+mkdir -p build
+cd build
+cmake -D CMAKE_CXX_COMPILER=g++-8 -D CMAKE_C_COMPILER=gcc-8 -D CMAKE_BUILD_TYPE=RELEASE ..
+make
+cd ..
+
+```
+
+
+ 
+# Setting up
+
+
+Assuming your project is in a folder named "catkin_ws" on your home Directory.
+
+```sh
+source /opt/ros/melodic/setup.bash
+
+mkdir -p ~/catkin_ws/src
+cd ~/catkin_ws/
+catkin_make clean
+
+cd src/ 
+git clone https://github.com/HIRO-group/openface_ros
+
+cd ..
+
+catkin_make 
+
+```
+
+
+
+### Execution 
 
 #### Initial steps 
 
- 1. Turn on the robot. Wait for the robot to finish its start-up phase.
- 2. Be sure that the system you're running the code has access to the Sawyer robot. This is usually done by running the `intera.sh` script that should be provided in your Sawyer installation. See [here](http://sdk.rethinkrobotics.com/intera/SDK_Shell) for more info.
- 3. Connect Realsense camera with USB 3.0 port in your computer.
+ 1. Connect Realsense camera with USB 3.0 port in your computer.
+
 
 #### How to run this package
 
-After cloning and building this repo, you need to launch the enviroment we need, which include realsence and sending a new urdf into Sawyer robot. Then, you can run the sample code called `openface_realsense` in this package. To run things above, you can run the commands below.
+After cloning and building the repo, you can run the commands below.
 
 ```sh
 roslaunch openface_ros openface_ros.launch
 rosrun openface_ros openface_realsense
 ```
 
-In `openface_realsense`, we first initialize an OpenFaceRos object, and it will detect human's gaze and emotion and also pop out a screen with pose, gaze firection on user's face.
-
-## Functions of OpenFaceRos
-
-Most of the core functions are implemented in `openface_ros.cpp`. Belows are details of some important functions in OpenFaseRos.
-
-* `OpenFaceRos constructor`: For constructor, we need focal length, center of realsense, threshold of distance betwenn gaze vector and target and a flag enable action unit or not.
-
-* `getNose, getLeftPupil, getRightPupil`: These three function will give you position of nose, left pupil and right pupil individually. The location is pixel-based, which means location in showing image.
-
-## More information
-
-Here will include more information in this package.
-
-### Meshes
-
-This folder is for CAD files that we can show different objects (realsense) in simulators like rviz and gazebo. For now, we only have model for realsense camera, but in the future we might need more files so we create this folder.
-
-### Sending urdf
-
-Because we want an extra realsense model mount on Sawyer robot, we need to add an extra link and joint into our urdf. To do this, we use `send_urdf_fragment` from [intera_sdk](https://github.com/RethinkRobotics/intera_sdk/tree/master/intera_interface/scripts), which can send exclusion links and joints to Sawyer robot. In launch file, we called `send_urdf_fragment` with our urdf file in urdf folder to connect realsense with Sawyer.
 
 
+## License
+This project is licensed under [BSD 3-Clause License](LICENSE).
+
+You have to respect OpenFace, dlib, and OpenCV licenses, together with licenses of the datasets used for OpenFace model training.
